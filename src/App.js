@@ -7,7 +7,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      transactions: [],
+      transactions: JSON.parse(localStorage.getItem("key")) || [],
       description: "",
       amount: "",
       resultIncome: 0,
@@ -22,7 +22,7 @@ class App extends Component {
     const transaction = {
       id: `id${(+new Date()).toString(16)}`,
       description: this.state.description,
-      amount: this.state.amount,
+      amount: parseFloat(this.state.amount),
       add,
     };
 
@@ -38,8 +38,16 @@ class App extends Component {
     );
   };
 
+  componentWillMount() {
+    this.getTotalBalance();
+  }
+
+  componentDidUpdate() {
+    this.addStorage();
+  }
+
   addAmount = (e) => {
-    this.setState({ amount: parseFloat(e.target.value) });
+    this.setState({ amount: e.target.value });
   };
 
   addDescription = (e) => {
@@ -70,6 +78,17 @@ class App extends Component {
     });
   }
 
+  addStorage() {
+    localStorage.setItem("key", JSON.stringify(this.state.transactions));
+  }
+
+  deleteTransaction = (key) => {
+    const transactions = this.state.transactions.filter(
+      (item) => item.id !== key
+    );
+    this.setState({ transactions }, this.getTotalBalance);
+  };
+
   render() {
     return (
       <>
@@ -85,7 +104,10 @@ class App extends Component {
               resultExpenses={this.state.resultExpenses}
               totalBalance={this.state.totalBalance}
             />
-            <History transactions={this.state.transactions} />
+            <History
+              transactions={this.state.transactions}
+              deleteTransaction={this.deleteTransaction}
+            />
             <Operation
               addTransaction={this.addTransaction}
               addAmount={this.addAmount}
